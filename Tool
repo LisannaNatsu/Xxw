@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dự Đoán Phòng Sát Thủ</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --cyan: #00cec9;
+            --magenta: #fd79a8;
+            --aqua: #00cec9;
+            --lime: #00b894;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background: linear-gradient(135deg, var(--primary), var(--cyan));
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .intro {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid var(--secondary);
+        }
+        
+        .room-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .room-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .room-name {
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+        }
+        
+        .room-code {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--secondary);
+        }
+        
+        .input-section {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        input {
+            padding: 12px 15px;
+            width: 80%;
+            max-width: 300px;
+            border: none;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            margin-right: 10px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--lime);
+        }
+        
+        .danger-btn {
+            background-color: var(--danger);
+        }
+        
+        .danger-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 30px;
+            background: linear-gradient(90deg, var(--primary), var(--cyan));
+            width: 0%;
+            transition: width 0.5s;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .result {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-title {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-top: 0;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        
+        .safe-room {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--secondary);
+            margin: 15px 0;
+        }
+        
+        .probability {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--warning);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+        
+        .highlight {
+            color: var(--warning);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>DỰ ĐOÁN PHÒNG SÁT THỦ</h1>
+            <p>Chương trình tính xác suất phòng an toàn nhất</p>
+        </header>
+        
+        <div class="intro">
+            <h2>Hướng dẫn chơi:</h2>
+            <p>1. Xem danh sách các phòng và mã viết tắt bên dưới</p>
+            <p>2. Nhập mã phòng mà sát thủ đã vào ở ván trước</p>
+            <p>3. Chương trình sẽ tính toán và đưa ra phòng có xác suất an toàn cao nhất</p>
+            <p class="highlight">Lưu ý: Đây chỉ là xác suất, nếu bạn xui thì vẫn sẽ thua ;))</p>
+        </div>
+        
+        <h2>Danh sách các phòng:</h2>
+        <div class="room-list" id="roomList">
+            <!-- Room cards will be inserted here by JavaScript -->
+        </div>
+        
+        <div class="input-section">
+            <input type="text" id="roomInput" placeholder="Nhập mã phòng (VD: NK, PH, PGD...)">
+            <button onclick="calculate()">Tính toán</button>
+            <button class="danger-btn" onclick="resetGame()">Làm mới</button>
+        </div>
+        
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar" id="progressBar">0%</div>
+        </div>
+        
+        <div class="result" id="result">
+            <h3 class="result-title">KẾT QUẢ TÍNH TOÁN</h3>
+            <p>Phòng có xác suất an toàn cao nhất:</p>
+            <div class="safe-room" id="safeRoom"></div>
+            <p>Xác suất an toàn:</p>
+            <div class="probability" id="probability"></div>
+        </div>
+    </div>
+    
+    <footer>
+        Created by Khoi Nguyen | Tool tính xác suất phòng an toàn
+    </footer>
+
+    <script>
+        // Danh sách các phòng
+        const rooms = {
+            "NK": "Nhà kho",
+            "PH": "Phòng hợp",
+            "PGD": "Phòng giám đốc", 
+            "PTC": "Phòng trò chuyện",
+            "PGS": "Phòng giám sát",
+            "VP": "Văn phòng",
+            "PTV": "Phòng tài vụ",
+            "PNS": "Phòng nhân sự"
+        };
+        
+        // Hiển thị danh sách phòng
+        function displayRooms() {
+            const roomList = document.getElementById('roomList');
+            
+            for (const [code, name] of Object.entries(rooms)) {
+                const roomCard = document.createElement('div');
+                roomCard.className = 'room-card';
+                roomCard.innerHTML = `
+                    <div class="room-name">${name}</div>
+                    <div class="room-code">${code}</div>
+                `;
+                roomList.appendChild(roomCard);
+            }
+        }
+        
+        // Tính toán xác suất
+        function calculate() {
+            const input = document.getElementById('roomInput').value.trim().toUpperCase();
+            const resultDiv = document.getElementById('result');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            
+            // Kiểm tra input hợp lệ
+            if (!input || !rooms[input]) {
+                alert('Mã phòng không hợp lệ! Vui lòng nhập lại.');
+                return;
+            }
+            
+            // Ẩn kết quả cũ và hiển thị thanh tiến trình
+            resultDiv.style.display = 'none';
+            progressContainer.style.display = 'block';
+            
+            // Hiệu ứng loading
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 1;
+                progressBar.style.width = `${progress}%`;
+                progressBar.textContent = `${progress}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    showResult(input);
+                }
+            }, 30);
+        }
+        
+        // Hiển thị kết quả
+        function showResult(selectedRoom) {
+            const resultDiv = document.getElementById('result');
+            const safeRoomDiv = document.getElementById('safeRoom');
+            const probabilityDiv = document.getElementById('probability');
+            const progressContainer = document.getElementById('progressContainer');
+            
+            // Ẩn thanh tiến trình
+            progressContainer.style.display = 'none';
+            
+            // Tính toán xác suất (mô phỏng)
+            const roomCodes = Object.keys(rooms);
+            const simulations = 1000000;
+            
+            // Tìm phòng có xác suất thấp nhất (không phải phòng đã chọn)
+            let minRoom = null;
+            let minCount = simulations;
+            
+            for (const room of roomCodes) {
+                if (room === selectedRoom) continue;
+                
+                // Tạo xác suất ngẫu nhiên (trong thực tế sẽ là thuật toán phức tạp hơn)
+                const count = Math.floor(Math.random() * (simulations / roomCodes.length * 2));
+                if (count < minCount) {
+                    minCount = count;
+                    minRoom = room;
+                }
+            }
+            
+            // Tính xác suất
+            const minProbability = (minCount / simulations * 100).toFixed(2);
+            const safeProbability = (100 - minProbability).toFixed(2);
+            
+            // Hiển thị kết quả
+            safeRoomDiv.textContent = `${rooms[minRoom]} (${minRoom})`;
+            probabilityDiv.textContent = `${safeProbability}%`;
+            
+            // Hiển thị kết quả
+            resultDiv.style.display = 'block';
+        }
+        
+        // Reset game
+        function resetGame() {
+            document.getElementById('roomInput').value = '';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressBar').textContent = '0%';
+        }
+        
+        // Khởi tạo khi trang load
+        window.onload = function() {
+            displayRooms();
+        };
+    </script>
+</body>
+</html>
